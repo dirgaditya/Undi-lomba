@@ -130,7 +130,7 @@ html, body {
   margin-top: 0;
 }
 .setup-panel.open {
-  max-height: 420px;
+  max-height: 900px;
   opacity: 1;
   margin-top: 14px;
 }
@@ -296,6 +296,12 @@ html, body {
   background: var(--sky-pale);
   padding: 6px 12px;
   border-radius: 100px;
+}
+
+.panel-divider {
+  height: 1px;
+  background: var(--line);
+  margin: 20px 0;
 }
 
 .setup-actions { display: flex; gap: 10px; }
@@ -654,6 +660,60 @@ html, body {
   .pair-grid { grid-template-columns: 1fr; }
 }
 
+/* ===== Desktop: sidebar layout ===== */
+@media (min-width: 1024px) {
+  .stage {
+    max-width: 1240px;
+  }
+
+  .stage-layout {
+    display: flex;
+    align-items: flex-start;
+    gap: 28px;
+  }
+
+  /* Sidebar: collapses to zero width instead of zero height on desktop */
+  .setup-panel {
+    max-height: none;
+    overflow: hidden;
+    width: 0;
+    opacity: 0;
+    margin-top: 0;
+    flex-shrink: 0;
+    transition: width 0.32s cubic-bezier(.4,0,.2,1), opacity 0.25s ease;
+  }
+  .setup-panel.open {
+    width: 320px;
+    opacity: 1;
+    margin-top: 0;
+  }
+
+  .setup-inner {
+    width: 320px;
+    position: sticky;
+    top: 20px;
+  }
+
+  .content-column {
+    flex: 1;
+    min-width: 0;
+    max-height: calc(100vh - 40px);
+    overflow-y: auto;
+    padding-right: 4px;
+  }
+
+  /* Draw button and panel head sit stacked inside the narrow sidebar */
+  .setup-inner .panel-head {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 14px;
+  }
+  .setup-inner .btn-draw {
+    width: 100%;
+    text-align: center;
+  }
+}
+
 /* Focus visibility */
 button:focus-visible, textarea:focus-visible {
   outline: 2.5px solid var(--sky-deep);
@@ -671,7 +731,7 @@ button:focus-visible, textarea:focus-visible {
     <span class="brand-mark"></span>
     <div class="brand-text">
       <span class="brand-title">Pengundian Lomba</span>
-      <span class="brand-sub">Urutan tampil &amp; pairing peserta</span>
+      <span class="brand-sub">Urutan tampil &amp; pairing kelas</span>
     </div>
   </div>
   <button class="btn-ghost" id="toggleSetup" aria-expanded="false" aria-controls="setupPanel">
@@ -682,8 +742,47 @@ button:focus-visible, textarea:focus-visible {
 
 <main class="stage">
 
-  <section class="setup-panel" id="setupPanel" hidden>
+  <div class="stage-layout">
+
+    <section class="setup-panel" id="setupPanel" hidden>
     <div class="setup-inner">
+      <nav class="tabs" role="tablist">
+        <button class="tab active" data-tab="urutan" role="tab" aria-selected="true">
+          <span class="tab-num">01</span>
+          Urutan Tampil
+        </button>
+        <button class="tab" data-tab="pairing" role="tab" aria-selected="false">
+          <span class="tab-num">02</span>
+          Pairing Kelas
+        </button>
+      </nav>
+
+      <div class="tab-controls active" data-tab-controls="urutan">
+        <div class="panel-head">
+          <div>
+            <h1>Urutan Tampil Lomba</h1>
+            <p class="panel-desc">Undi urutan penampilan setiap kelas secara acak.</p>
+          </div>
+          <button class="btn-draw" id="drawUrutan">
+            <span>Undi Sekarang</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="tab-controls" data-tab-controls="pairing" hidden>
+        <div class="panel-head">
+          <div>
+            <h1>Pairing Kelas</h1>
+            <p class="panel-desc">Undi lawan tanding secara acak, dua kelas per babak.</p>
+          </div>
+          <button class="btn-draw" id="drawPairing">
+            <span>Undi Sekarang</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="panel-divider"></div>
+
       <div class="setup-head">
         <h2>Daftar Peserta</h2>
         <p>Pilih sumber peserta. Tersimpan otomatis di perangkat ini.</p>
@@ -743,33 +842,27 @@ button:focus-visible, textarea:focus-visible {
           <button class="btn-primary" id="saveClasses">Simpan</button>
         </div>
       </div>
+
+      <div class="switch-row-wrap" data-tab-controls-extra="pairing">
+        <div class="panel-divider"></div>
+        <label class="switch-row" for="limitAngkatan" id="limitAngkatanRow">
+          <span class="switch">
+            <input type="checkbox" id="limitAngkatan">
+            <span class="switch-track"><span class="switch-thumb"></span></span>
+          </span>
+          <span class="switch-text">
+            <strong>Batasi lawan per angkatan</strong>
+            <span>Kelas hanya diundi melawan kelas dari angkatan yang sama (contoh: X.A hanya bisa lawan kelas X lainnya). Hanya berlaku untuk mode Kelas.</span>
+          </span>
+        </label>
+      </div>
     </div>
-  </section>
+    </section>
 
-
-  <nav class="tabs" role="tablist">
-    <button class="tab active" data-tab="urutan" role="tab" aria-selected="true">
-      <span class="tab-num">01</span>
-      Urutan Tampil
-    </button>
-    <button class="tab" data-tab="pairing" role="tab" aria-selected="false">
-      <span class="tab-num">02</span>
-      Pairing Peserta
-    </button>
-  </nav>
+    <div class="content-column">
 
   <!-- URUTAN TAMPIL -->
   <section class="panel active" id="panel-urutan" role="tabpanel">
-    <div class="panel-head">
-      <div>
-        <h1>Urutan Tampil Lomba</h1>
-        <p class="panel-desc">Undi urutan penampilan setiap peserta secara acak.</p>
-      </div>
-      <button class="btn-draw" id="drawUrutan">
-        <span>Undi Sekarang</span>
-      </button>
-    </div>
-
     <div class="empty-state" id="urutanEmpty">
       <div class="empty-icon">✦</div>
       <p>Belum ada undian. Tekan <strong>Undi Sekarang</strong> untuk memulai.</p>
@@ -780,27 +873,6 @@ button:focus-visible, textarea:focus-visible {
 
   <!-- PAIRING -->
   <section class="panel" id="panel-pairing" role="tabpanel" hidden>
-    <div class="panel-head">
-      <div>
-        <h1>Pairing Peserta</h1>
-        <p class="panel-desc">Undi lawan tanding secara acak, dua peserta per babak.</p>
-      </div>
-      <button class="btn-draw" id="drawPairing">
-        <span>Undi Sekarang</span>
-      </button>
-    </div>
-
-    <label class="switch-row" for="limitAngkatan" id="limitAngkatanRow">
-      <span class="switch">
-        <input type="checkbox" id="limitAngkatan">
-        <span class="switch-track"><span class="switch-thumb"></span></span>
-      </span>
-      <span class="switch-text">
-        <strong>Batasi lawan per angkatan</strong>
-        <span>Kelas hanya diundi melawan kelas dari angkatan yang sama (contoh: X.A hanya bisa lawan kelas X lainnya). Hanya berlaku untuk mode Kelas.</span>
-      </span>
-    </label>
-
     <div class="empty-state" id="pairingEmpty">
       <div class="empty-icon">✦</div>
       <p>Belum ada undian. Tekan <strong>Undi Sekarang</strong> untuk memulai.</p>
@@ -808,6 +880,10 @@ button:focus-visible, textarea:focus-visible {
 
     <div class="pair-grid" id="pairingResult"></div>
   </section>
+
+    </div>
+
+  </div>
 
 </main>
 
@@ -863,6 +939,10 @@ const panels = {
   urutan: document.getElementById("panel-urutan"),
   pairing: document.getElementById("panel-pairing"),
 };
+const tabControls = {
+  urutan: document.querySelector('[data-tab-controls="urutan"]'),
+  pairing: document.querySelector('[data-tab-controls="pairing"]'),
+};
 
 const drawUrutanBtn = document.getElementById("drawUrutan");
 const urutanResult = document.getElementById("urutanResult");
@@ -873,6 +953,16 @@ const pairingResult = document.getElementById("pairingResult");
 const pairingEmpty = document.getElementById("pairingEmpty");
 
 let currentMode = "kelas"; // "kelas" | "manual"
+let currentTab = "urutan"; // "urutan" | "pairing"
+
+// The "batasi lawan per angkatan" row only makes sense when on the Pairing tab AND in Kelas mode.
+function updateLimitAngkatanVisibility() {
+  const limitRow = document.getElementById("limitAngkatanRow");
+  const wrap = document.querySelector(".switch-row-wrap");
+  const shouldShow = currentTab === "pairing" && currentMode === "kelas";
+  if (wrap) wrap.hidden = !shouldShow;
+  if (!shouldShow) document.getElementById("limitAngkatan").checked = false;
+}
 
 // ===== Mode switching =====
 function setMode(mode) {
@@ -885,9 +975,7 @@ function setMode(mode) {
   modeKelasBody.hidden = !isKelas;
   modeManualBody.hidden = isKelas;
 
-  const limitRow = document.getElementById("limitAngkatanRow");
-  if (limitRow) limitRow.hidden = !isKelas;
-  if (!isKelas) document.getElementById("limitAngkatan").checked = false;
+  updateLimitAngkatanVisibility();
 
   updateCount();
 }
@@ -1140,6 +1228,14 @@ tabs.forEach(tab => {
     const target = panels[tab.dataset.tab];
     target.hidden = false;
     target.classList.add("active");
+
+    Object.values(tabControls).forEach(c => { c.classList.remove("active"); c.hidden = true; });
+    const targetControls = tabControls[tab.dataset.tab];
+    targetControls.hidden = false;
+    targetControls.classList.add("active");
+
+    currentTab = tab.dataset.tab;
+    updateLimitAngkatanVisibility();
   });
 });
 
@@ -1290,6 +1386,15 @@ function escapeHtml(str) {
 
 // ===== Init =====
 initClassInput();
+
+// On desktop, the sidebar is open by default (there's room for it).
+// On mobile, it stays collapsed until the user taps "Daftar Kelas".
+const DESKTOP_BREAKPOINT = 1024;
+if (window.innerWidth >= DESKTOP_BREAKPOINT) {
+  setupPanel.classList.add("open");
+  setupPanel.hidden = false;
+  toggleSetupBtn.setAttribute("aria-expanded", "true");
+}
 
 </script>
 </body>

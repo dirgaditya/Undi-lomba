@@ -334,11 +334,33 @@ html, body {
 .btn-primary:active { transform: scale(0.97); }
 
 /* ===== Tabs ===== */
+.tab-title h1 {
+  font-family: var(--font-display);
+  font-size: clamp(22px, 3vw, 26px);
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  margin: 0 0 6px;
+}
+.tab-title .panel-desc {
+  font-size: 13.5px;
+  color: var(--navy-soft);
+  margin: 0 0 18px;
+}
+
+.tabs-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px 16px;
+  margin-bottom: 4px;
+  min-width: 0;
+}
+
 .tabs {
   display: flex;
+  min-width: 0;
   gap: 6px;
-  margin: 28px 0 26px;
-  border-bottom: 1px solid var(--line);
 }
 
 .tab {
@@ -351,11 +373,12 @@ html, body {
   color: var(--navy-soft);
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: 15px;
-  padding: 12px 6px 14px;
+  font-size: 14px;
+  padding: 8px 4px 10px;
   cursor: pointer;
   transition: color 0.15s ease;
-  margin-right: 22px;
+  margin-right: 14px;
+  white-space: nowrap;
 }
 .tab-num {
   font-family: var(--font-body);
@@ -370,6 +393,10 @@ html, body {
 .tab.active { color: var(--navy); border-bottom-color: var(--sky); }
 .tab.active .tab-num { background: var(--sky); color: var(--white); }
 .tab:hover:not(.active) { color: var(--navy); }
+
+.tab-controls .btn-draw {
+  white-space: nowrap;
+}
 
 /* ===== Panels ===== */
 .panel { display: none; animation: fadeUp 0.35s ease; }
@@ -662,55 +689,77 @@ html, body {
 
 /* ===== Desktop: sidebar layout ===== */
 @media (min-width: 1024px) {
+  body {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .topbar {
+    flex-shrink: 0;
+  }
+
+  .foot {
+    flex-shrink: 0;
+    padding: 8px 20px 10px;
+  }
+
   .stage {
-    max-width: 1240px;
+    max-width: none;
+    width: 100%;
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    padding-left: clamp(18px, 3vw, 40px);
+    padding-right: clamp(18px, 3vw, 40px);
+    padding-bottom: 12px;
+    box-sizing: border-box;
   }
 
   .stage-layout {
     display: flex;
-    align-items: flex-start;
-    gap: 28px;
+    align-items: stretch;
+    gap: 24px;
+    flex: 1;
+    min-height: 0;
   }
 
   /* Sidebar: collapses to zero width instead of zero height on desktop */
   .setup-panel {
     max-height: none;
     overflow: hidden;
-    width: 0;
+    flex-basis: 0;
+    flex-grow: 0;
+    flex-shrink: 0;
     opacity: 0;
     margin-top: 0;
-    flex-shrink: 0;
-    transition: width 0.32s cubic-bezier(.4,0,.2,1), opacity 0.25s ease;
+    transition: flex-basis 0.32s cubic-bezier(.4,0,.2,1), opacity 0.25s ease;
   }
   .setup-panel.open {
-    width: 320px;
+    max-height: none;
+    flex-basis: 33.333%;
     opacity: 1;
     margin-top: 0;
   }
 
   .setup-inner {
-    width: 320px;
-    position: sticky;
-    top: 20px;
+    width: 100%;
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    box-sizing: border-box;
   }
 
   .content-column {
     flex: 1;
     min-width: 0;
-    max-height: calc(100vh - 40px);
+    height: 100%;
     overflow-y: auto;
+    overflow-x: hidden;
     padding-right: 4px;
-  }
-
-  /* Draw button and panel head sit stacked inside the narrow sidebar */
-  .setup-inner .panel-head {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 14px;
-  }
-  .setup-inner .btn-draw {
-    width: 100%;
-    text-align: center;
+    box-sizing: border-box;
   }
 }
 
@@ -746,35 +795,35 @@ button:focus-visible, textarea:focus-visible {
 
     <section class="setup-panel" id="setupPanel" hidden>
     <div class="setup-inner">
-      <nav class="tabs" role="tablist">
-        <button class="tab active" data-tab="urutan" role="tab" aria-selected="true">
-          <span class="tab-num">01</span>
-          Urutan Tampil
-        </button>
-        <button class="tab" data-tab="pairing" role="tab" aria-selected="false">
-          <span class="tab-num">02</span>
-          Pairing Kelas
-        </button>
-      </nav>
 
-      <div class="tab-controls active" data-tab-controls="urutan">
-        <div class="panel-head">
-          <div>
-            <h1>Urutan Tampil Lomba</h1>
-            <p class="panel-desc">Undi urutan penampilan setiap kelas secara acak.</p>
-          </div>
+      <div class="tab-title active" data-tab-title="urutan">
+        <h1>Urutan Tampil Lomba</h1>
+        <p class="panel-desc">Undi urutan penampilan setiap kelas secara acak.</p>
+      </div>
+      <div class="tab-title" data-tab-title="pairing" hidden>
+        <h1>Pairing Kelas</h1>
+        <p class="panel-desc">Undi lawan tanding secara acak, dua kelas per babak.</p>
+      </div>
+
+      <div class="tabs-row">
+        <nav class="tabs" role="tablist">
+          <button class="tab active" data-tab="urutan" role="tab" aria-selected="true">
+            <span class="tab-num">01</span>
+            Urutan Tampil
+          </button>
+          <button class="tab" data-tab="pairing" role="tab" aria-selected="false">
+            <span class="tab-num">02</span>
+            Pairing Kelas
+          </button>
+        </nav>
+
+        <div class="tab-controls active" data-tab-controls="urutan">
           <button class="btn-draw" id="drawUrutan">
             <span>Undi Sekarang</span>
           </button>
         </div>
-      </div>
 
-      <div class="tab-controls" data-tab-controls="pairing" hidden>
-        <div class="panel-head">
-          <div>
-            <h1>Pairing Kelas</h1>
-            <p class="panel-desc">Undi lawan tanding secara acak, dua kelas per babak.</p>
-          </div>
+        <div class="tab-controls" data-tab-controls="pairing" hidden>
           <button class="btn-draw" id="drawPairing">
             <span>Undi Sekarang</span>
           </button>
@@ -942,6 +991,10 @@ const panels = {
 const tabControls = {
   urutan: document.querySelector('[data-tab-controls="urutan"]'),
   pairing: document.querySelector('[data-tab-controls="pairing"]'),
+};
+const tabTitles = {
+  urutan: document.querySelector('[data-tab-title="urutan"]'),
+  pairing: document.querySelector('[data-tab-title="pairing"]'),
 };
 
 const drawUrutanBtn = document.getElementById("drawUrutan");
@@ -1233,6 +1286,11 @@ tabs.forEach(tab => {
     const targetControls = tabControls[tab.dataset.tab];
     targetControls.hidden = false;
     targetControls.classList.add("active");
+
+    Object.values(tabTitles).forEach(t => { t.classList.remove("active"); t.hidden = true; });
+    const targetTitle = tabTitles[tab.dataset.tab];
+    targetTitle.hidden = false;
+    targetTitle.classList.add("active");
 
     currentTab = tab.dataset.tab;
     updateLimitAngkatanVisibility();

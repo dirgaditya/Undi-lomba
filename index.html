@@ -132,7 +132,9 @@ textarea:focus { outline-color: var(--accent); }
 
 /* ============ Stage ============ */
 .stage-head { display: grid; gap: 16px; margin-bottom: 24px; }
-.stage-head .seg { max-width: 320px; }
+.tools { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.tools .seg { flex: 1; max-width: 320px; }
+.tools .link { white-space: nowrap; }
 .title-row { display: flex; justify-content: space-between; align-items: end; gap: 16px; flex-wrap: wrap; }
 h1 { margin: 0; font-size: clamp(30px, 5vw, 40px); line-height: 1.05; letter-spacing: -.03em; font-weight: 700; }
 .desc { margin: 6px 0 0; color: var(--muted); }
@@ -165,6 +167,11 @@ h1 { margin: 0; font-size: clamp(30px, 5vw, 40px); line-height: 1.05; letter-spa
 .pair span:not(.vs) { flex: 1; text-align: center; font-size: 18px; }
 .vs { font-size: 11px; font-weight: 700; letter-spacing: .06em; color: var(--muted); background: var(--fill); padding: 4px 9px; border-radius: 99px; }
 .bye { justify-content: center; color: var(--muted); font-weight: 500; font-size: 14px; }
+
+/* Plain-text view */
+.doc { padding: 6px; background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); }
+.doc-bar { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; color: var(--muted); font-size: 13px; }
+.doc textarea { margin: 0; min-height: 320px; background: transparent; font: 14px/1.7 ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
 
 .enter > * { animation: in .55s var(--ease) both; animation-delay: calc(min(var(--i), 24) * 45ms); }
 @keyframes in { from { opacity: 0; transform: translateY(12px) scale(.98); } }
@@ -232,9 +239,12 @@ h1 { margin: 0; font-size: clamp(30px, 5vw, 40px); line-height: 1.05; letter-spa
 
   <main>
     <div class="stage-head">
-      <div class="seg" id="tabSeg" role="tablist">
-        <button role="tab" data-tab="urutan">Urutan Tampil</button>
-        <button role="tab" data-tab="pairing">Pairing</button>
+      <div class="tools">
+        <div class="seg" id="tabSeg" role="tablist">
+          <button role="tab" data-tab="urutan">Urutan Tampil</button>
+          <button role="tab" data-tab="pairing">Pairing</button>
+        </div>
+        <button class="link press" id="viewToggle" aria-pressed="false">Lihat teks</button>
       </div>
       <div class="title-row">
         <div>
@@ -269,6 +279,7 @@ const $ = (s) => document.querySelector(s);
 const state = load();
 const results = { urutan: null, pairing: null };
 let tab = "urutan";
+let asText = false;
 
 function load() {
   try {
@@ -350,6 +361,29 @@ const VIEW = {
   },
 };
 
+// Same results as a plain document, easy to paste into chat or docs
+const TEXT = {
+  urutan: (order) => ["URUTAN TAMPIL", "", ...order.map((c, i) => `${i + 1}. ${c}`)].join("\n"),
+
+  pairing: (sets) => ["PAIRING", ...sets.flatMap((g) => [
+    "",
+    ...(g.label ? [g.label, ""] : []),
+    ...g.pairs.map(([a, b], i) => `${i + 1}. ${a} vs ${b}`),
+    ...(g.bye ? [`${g.bye} — bye (tidak mendapat lawan)`] : []),
+  ])].join("\n"),
+};
+
+function renderText(data) {
+  const text = TEXT[tab](data);
+  const rows = text.split("\n").length + 1;
+  $("#result").className = "";
+  $("#result").innerHTML = `
+    <div class="doc">
+      <div class="doc-bar"><span>Teks biasa — bisa diedit & disalin</span><button class="link press" id="copy">Salin</button></div>
+      <textarea id="plain" rows="${rows}" spellcheck="false">${esc(text)}</textarea>
+    </div>`;
+}
+
 function renderResult(animate) {
   const out = $("#result");
   const data = results[tab];
@@ -361,6 +395,7 @@ function renderResult(animate) {
       : "Belum ada undian. Tekan <b>Undi Sekarang</b>."}</div>`;
     return;
   }
+  if (asText) return renderText(data);
   out.className = animate ? "enter" : "";
   out.innerHTML = VIEW[tab](data);
 }
@@ -391,6 +426,8 @@ function refresh() {
   $("#limit").checked = state.limit;
   $("#count").textContent = `${total} peserta`;
   $("#draw").disabled = total === 0;
+  $("#viewToggle").textContent = asText ? "Lihat kartu" : "Lihat teks";
+  $("#viewToggle").setAttribute("aria-pressed", asText);
   $("#title").textContent = TABS[tab].title;
   $("#desc").textContent = TABS[tab].desc;
 
@@ -442,28 +479,4 @@ $("#manual").addEventListener("input", (e) => { state.manual = e.target.value; s
 $("#limit").addEventListener("change", (e) => { state.limit = e.target.checked; save(); });
 
 $("#reset").addEventListener("click", () => {
-  if (state.mode === "kelas") { state.ranges = structuredClone(DEFAULTS.ranges); renderRanges(); }
-  else { state.manual = DEFAULTS.manual; $("#manual").value = state.manual; }
-  save(); refresh();
-});
-
-$("#draw").addEventListener("click", () => {
-  results[tab] = DRAW[tab]();
-  renderResult(true);
-});
-
-// Mobile bottom sheet
-const sheet = (open) => document.body.classList.toggle("sheet", open);
-$("#openSheet").addEventListener("click", () => sheet(true));
-$("#closeSheet").addEventListener("click", () => sheet(false));
-$("#scrim").addEventListener("click", () => sheet(false));
-document.addEventListener("keydown", (e) => e.key === "Escape" && sheet(false));
-
-/* ============ Init ============ */
-renderRanges();
-$("#manual").value = state.manual;
-refresh();
-renderResult(false);
-</script>
-</body>
-</html>
+  

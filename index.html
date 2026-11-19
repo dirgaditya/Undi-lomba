@@ -479,4 +479,39 @@ $("#manual").addEventListener("input", (e) => { state.manual = e.target.value; s
 $("#limit").addEventListener("change", (e) => { state.limit = e.target.checked; save(); });
 
 $("#reset").addEventListener("click", () => {
-  
+  if (state.mode === "kelas") { state.ranges = structuredClone(DEFAULTS.ranges); renderRanges(); }
+  else { state.manual = DEFAULTS.manual; $("#manual").value = state.manual; }
+  save(); refresh();
+});
+
+$("#draw").addEventListener("click", () => {
+  results[tab] = DRAW[tab]();
+  renderResult(true);
+});
+
+$("#viewToggle").addEventListener("click", () => { asText = !asText; refresh(); renderResult(false); });
+
+$("#result").addEventListener("click", async (e) => {
+  if (e.target.id !== "copy") return;
+  const box = $("#plain");
+  try { await navigator.clipboard.writeText(box.value); }
+  catch { box.select(); document.execCommand("copy"); } // file:// or older browsers
+  e.target.textContent = "Tersalin ✓";
+  setTimeout(() => { e.target.textContent = "Salin"; }, 1400);
+});
+
+// Mobile bottom sheet
+const sheet = (open) => document.body.classList.toggle("sheet", open);
+$("#openSheet").addEventListener("click", () => sheet(true));
+$("#closeSheet").addEventListener("click", () => sheet(false));
+$("#scrim").addEventListener("click", () => sheet(false));
+document.addEventListener("keydown", (e) => e.key === "Escape" && sheet(false));
+
+/* ============ Init ============ */
+renderRanges();
+$("#manual").value = state.manual;
+refresh();
+renderResult(false);
+</script>
+</body>
+</html>

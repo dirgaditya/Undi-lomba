@@ -2,1307 +2,308 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Pengundian Lomba</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-/* ===== Tokens ===== */
+/* ============ Tokens ============ */
 :root {
-  --sky: #2E9FE0;
-  --sky-deep: #1C7FBB;
-  --sky-pale: #E8F4FC;
-  --sky-mist: #F2F9FD;
-  --navy: #0F2A3D;
-  --navy-soft: #43617A;
-  --coral: #FF6B5C;
-  --coral-deep: #E4503F;
-  --paper: #F7FAFC;
-  --white: #FFFFFF;
-  --line: #D9E9F3;
-
-  --font-display: 'Space Grotesk', sans-serif;
-  --font-body: 'Inter', sans-serif;
-
-  --radius-lg: 20px;
-  --radius-md: 14px;
-  --radius-sm: 9px;
+  color-scheme: light dark;
+  --bg: #f2f2f7;
+  --card: #ffffff;
+  --fill: rgba(120, 120, 128, .12);
+  --text: #1c1c1e;
+  --muted: #6c6c70;
+  --line: rgba(60, 60, 67, .14);
+  --accent: #007aff;
+  --danger: #ff3b30;
+  --glass: rgba(242, 242, 247, .72);
+  --shadow: 0 1px 2px rgba(0, 0, 0, .06), 0 8px 24px rgba(0, 0, 0, .06);
+  --ease: cubic-bezier(.22, 1, .36, 1);   /* critically damped feel, no overshoot */
+  --radius: 18px;
+  --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", system-ui, sans-serif;
 }
-
-* { box-sizing: border-box; }
-
-html, body {
-  margin: 0;
-  padding: 0;
-  background: var(--paper);
-  color: var(--navy);
-  font-family: var(--font-body);
-  -webkit-font-smoothing: antialiased;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
-    animation-duration: 0.001ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.001ms !important;
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #000; --card: #1c1c1e; --text: #f5f5f7; --muted: #98989f;
+    --line: rgba(84, 84, 88, .5); --accent: #0a84ff; --glass: rgba(0, 0, 0, .66);
+    --shadow: 0 0 0 1px rgba(255, 255, 255, .04);
   }
 }
 
-/* ===== Ambient background ===== */
-.bg-field {
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  background:
-    radial-gradient(680px 420px at 88% -8%, rgba(46,159,224,0.16), transparent 60%),
-    radial-gradient(520px 360px at -5% 18%, rgba(46,159,224,0.10), transparent 55%);
-  pointer-events: none;
+/* ============ Base ============ */
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+body {
+  margin: 0; background: var(--bg); color: var(--text);
+  font: 15px/1.45 var(--font); -webkit-font-smoothing: antialiased;
 }
+button, input, textarea { font: inherit; color: inherit; }
+button { border: 0; background: none; cursor: pointer; }
+[hidden] { display: none !important; }
+:focus-visible { outline: 3px solid color-mix(in srgb, var(--accent) 55%, transparent); outline-offset: 2px; }
 
-/* ===== Topbar ===== */
-.topbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 22px clamp(18px, 4vw, 48px) 10px;
-  max-width: 980px;
-  margin: 0 auto;
-}
+/* Respond on press, instantly */
+.press { transition: transform .12s ease-out, opacity .12s; }
+.press:active { transform: scale(.97); opacity: .85; }
 
-.brand { display: flex; align-items: center; gap: 12px; }
+/* ============ Top bar (translucent material) ============ */
+.bar {
+  position: sticky; top: 0; z-index: 20;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px max(20px, env(safe-area-inset-right)) 12px max(20px, env(safe-area-inset-left));
+  background: var(--glass);
+  -webkit-backdrop-filter: blur(24px) saturate(180%); backdrop-filter: blur(24px) saturate(180%);
+  border-bottom: .5px solid var(--line);
+}
+.brand { font-weight: 600; font-size: 17px; letter-spacing: -.01em; }
+.link { color: var(--accent); font-weight: 500; padding: 6px 4px; }
+.only-mobile { display: none; }
 
-.brand-mark {
-  width: 34px;
-  height: 34px;
-  border-radius: 10px;
-  background: linear-gradient(145deg, var(--sky), var(--sky-deep));
-  position: relative;
-  flex-shrink: 0;
-  box-shadow: 0 4px 14px rgba(46,159,224,0.35);
+/* ============ Layout ============ */
+.layout {
+  display: grid; grid-template-columns: 340px minmax(0, 1fr); gap: 28px;
+  max-width: 1120px; margin: 0 auto; padding: 24px 20px 48px; align-items: start;
 }
-.brand-mark::after {
-  content: "";
-  position: absolute;
-  inset: 9px;
-  border-radius: 4px;
-  background: var(--white);
-  opacity: 0.9;
-  transform: rotate(45deg);
+.panel {
+  position: sticky; top: 76px; padding: 20px;
+  background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow);
 }
+.panel h2 { margin: 0 0 14px; font-size: 20px; letter-spacing: -.02em; display: flex; justify-content: space-between; align-items: center; }
+.scrim { display: none; }
 
-.brand-text { display: flex; flex-direction: column; line-height: 1.15; }
-.brand-title { font-family: var(--font-display); font-weight: 700; font-size: 17px; letter-spacing: -0.01em; }
-.brand-sub { font-size: 12px; color: var(--navy-soft); }
+/* ============ Segmented control (sliding thumb) ============ */
+.seg {
+  --n: 2; --i: 0;
+  position: relative; display: grid; grid-auto-flow: column; grid-auto-columns: 1fr;
+  padding: 2px; border-radius: 10px; background: var(--fill);
+}
+.seg::before {
+  content: ""; position: absolute; top: 2px; bottom: 2px; left: 2px;
+  width: calc((100% - 4px) / var(--n)); border-radius: 8px;
+  background: var(--card); box-shadow: 0 1px 3px rgba(0, 0, 0, .14), 0 0 0 .5px rgba(0, 0, 0, .04);
+  transform: translateX(calc(var(--i) * 100%));
+  transition: transform .4s var(--ease);
+}
+@media (prefers-color-scheme: dark) { .seg::before { background: #636366; } }
+.seg button { position: relative; padding: 7px 10px; font-weight: 500; font-size: 14px; color: var(--muted); transition: color .2s; }
+.seg button[aria-selected="true"] { color: var(--text); }
 
-.btn-ghost {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  background: var(--white);
-  border: 1px solid var(--line);
-  color: var(--navy-soft);
-  font-family: var(--font-body);
-  font-weight: 600;
-  font-size: 13px;
-  padding: 9px 15px;
-  border-radius: 100px;
-  cursor: pointer;
-  transition: all 0.15s ease;
+/* ============ Range rows ============ */
+.rows { display: grid; gap: 8px; margin: 16px 0 4px; }
+.range { display: flex; align-items: center; gap: 10px; }
+.range label { width: 92px; font-weight: 600; color: var(--muted); font-size: 14px; }
+.range i { color: var(--muted); font-style: normal; }
+.letter {
+  width: 52px; height: 44px; text-align: center; text-transform: uppercase;
+  font-size: 18px; font-weight: 600; border: 0; border-radius: 12px; background: var(--fill);
+  outline: 2px solid transparent; transition: outline-color .15s, background .15s;
 }
-.btn-ghost:hover { border-color: var(--sky); color: var(--sky-deep); background: var(--sky-mist); }
-.btn-ghost svg { transition: transform 0.3s ease; }
-.btn-ghost[aria-expanded="true"] svg { transform: rotate(75deg); }
+.letter:focus { outline-color: var(--accent); background: var(--card); }
+.letter.bad { outline-color: var(--danger); }
+.hint { margin: 6px 0 0; font-size: 13px; color: var(--muted); }
+.hint.err { color: var(--danger); }
 
-/* ===== Stage ===== */
-.stage {
-  max-width: 980px;
-  margin: 0 auto;
-  padding: 8px clamp(18px, 4vw, 48px) 60px;
+textarea {
+  width: 100%; min-height: 180px; margin-top: 16px; padding: 12px 14px; resize: vertical;
+  border: 0; border-radius: 12px; background: var(--fill); line-height: 1.7;
+  outline: 2px solid transparent; transition: outline-color .15s;
 }
+textarea:focus { outline-color: var(--accent); }
 
-/* ===== Setup panel ===== */
-.setup-panel {
-  overflow: hidden;
-  max-height: 0;
-  opacity: 0;
-  transition: max-height 0.38s cubic-bezier(.4,0,.2,1), opacity 0.3s ease, margin 0.38s ease;
-  margin-top: 0;
-}
-.setup-panel.open {
-  max-height: 900px;
-  opacity: 1;
-  margin-top: 14px;
-}
+.foot { display: flex; justify-content: space-between; align-items: center; margin-top: 16px; }
+.count { font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
 
-.setup-inner {
-  background: var(--white);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-lg);
-  padding: 22px 24px;
+/* ============ Switch row ============ */
+.switch {
+  display: flex; gap: 14px; align-items: center; margin-top: 18px; padding-top: 18px;
+  border-top: .5px solid var(--line); cursor: pointer;
 }
-
-.setup-head h2 { font-family: var(--font-display); font-size: 16px; margin: 0 0 3px; }
-.setup-head p { font-size: 13px; color: var(--navy-soft); margin: 0 0 14px; }
-
-.mode-switch {
-  display: flex;
-  gap: 6px;
-  background: var(--sky-mist);
-  border: 1px solid var(--line);
-  border-radius: 100px;
-  padding: 4px;
-  margin-bottom: 18px;
-}
-
-.mode-btn {
-  flex: 1;
-  background: none;
-  border: none;
-  font-family: var(--font-body);
-  font-weight: 700;
-  font-size: 13px;
-  color: var(--navy-soft);
-  padding: 9px 12px;
-  border-radius: 100px;
-  cursor: pointer;
-  transition: background 0.18s ease, color 0.18s ease;
-}
-.mode-btn.active {
-  background: var(--white);
-  color: var(--sky-deep);
-  box-shadow: 0 2px 8px rgba(15,42,61,0.08);
-}
-
-.mode-desc {
-  font-size: 12.5px;
-  color: var(--navy-soft);
-  margin: 0 0 14px;
-}
-
-.angkatan-ranges {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  margin-bottom: 14px;
-}
-
-.angkatan-range-row {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-}
-
-.angkatan-input-label {
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 13px;
-  color: var(--sky-deep);
-  background: var(--sky-pale);
-  padding: 10px 14px;
-  border-radius: var(--radius-sm);
-  flex-shrink: 0;
-  width: 92px;
-  text-align: center;
-}
-
-.range-fields {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.letter-box {
-  width: 48px;
-  height: 44px;
-  text-align: center;
-  background: var(--sky-mist);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-sm);
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 17px;
-  color: var(--navy);
-  outline: none;
-  text-transform: uppercase;
-  transition: border-color 0.15s ease, background 0.15s ease;
-}
-.letter-box:focus { border-color: var(--sky); background: var(--white); }
-.letter-box::placeholder { color: var(--navy-soft); opacity: 0.4; text-transform: none; }
-
-.letter-box.invalid {
-  border-color: var(--coral);
-  background: rgba(255,107,92,0.08);
-  animation: shakeBox 0.4s ease;
-}
-
-@keyframes shakeBox {
-  0%, 100% { transform: translateX(0); }
-  20% { transform: translateX(-4px); }
-  40% { transform: translateX(4px); }
-  60% { transform: translateX(-3px); }
-  80% { transform: translateX(3px); }
-}
-
-.range-dash {
-  color: var(--navy-soft);
-  font-weight: 600;
-}
-
-.range-warning {
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--navy-soft);
-  margin: 4px 0 8px 106px;
-  transition: color 0.15s ease;
-}
-.range-warning.is-error {
-  color: var(--coral-deep);
-  font-weight: 600;
-}
-
-.manual-textarea {
-  width: 100%;
-  min-height: 150px;
-  resize: vertical;
-  background: var(--sky-mist);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-md);
-  padding: 14px 16px;
-  font-family: 'JetBrains Mono', 'Consolas', monospace;
-  font-size: 13.5px;
-  line-height: 1.7;
-  color: var(--navy);
-  outline: none;
-  transition: border-color 0.15s ease;
-  margin-bottom: 14px;
-}
-.manual-textarea:focus { border-color: var(--sky); }
-.manual-textarea::placeholder { color: var(--navy-soft); opacity: 0.55; }
-
-.setup-foot {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-top: 14px;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
-.count-pill {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--sky-deep);
-  background: var(--sky-pale);
-  padding: 6px 12px;
-  border-radius: 100px;
-}
-
-.panel-divider {
-  height: 1px;
-  background: var(--line);
-  margin: 20px 0;
-}
-
-.setup-actions { display: flex; gap: 10px; }
-
-.btn-text {
-  background: none;
-  border: none;
-  color: var(--navy-soft);
-  font-family: var(--font-body);
-  font-weight: 600;
-  font-size: 13px;
-  cursor: pointer;
-  padding: 9px 4px;
-}
-.btn-text:hover { color: var(--sky-deep); }
-
-.btn-primary {
-  background: var(--navy);
-  color: var(--white);
-  border: none;
-  font-family: var(--font-body);
-  font-weight: 700;
-  font-size: 13px;
-  padding: 10px 20px;
-  border-radius: 100px;
-  cursor: pointer;
-  transition: background 0.15s ease, transform 0.1s ease;
-}
-.btn-primary:hover { background: var(--sky-deep); }
-.btn-primary:active { transform: scale(0.97); }
-
-/* ===== Tabs ===== */
-.tab-title h1 {
-  font-family: var(--font-display);
-  font-size: clamp(22px, 3vw, 26px);
-  font-weight: 700;
-  letter-spacing: -0.015em;
-  margin: 0 0 6px;
-}
-.tab-title .panel-desc {
-  font-size: 13.5px;
-  color: var(--navy-soft);
-  margin: 0 0 18px;
-}
-
-.tabs-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 12px 16px;
-  margin-bottom: 4px;
-  min-width: 0;
-}
-
-.tabs {
-  display: flex;
-  min-width: 0;
-  gap: 6px;
-}
-
-.tab {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  background: none;
-  border: none;
-  border-bottom: 2px solid transparent;
-  color: var(--navy-soft);
-  font-family: var(--font-display);
-  font-weight: 600;
-  font-size: 14px;
-  padding: 8px 4px 10px;
-  cursor: pointer;
-  transition: color 0.15s ease;
-  margin-right: 14px;
-  white-space: nowrap;
-}
-.tab-num {
-  font-family: var(--font-body);
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--sky);
-  background: var(--sky-pale);
-  padding: 3px 7px;
-  border-radius: 6px;
-  letter-spacing: 0.02em;
-}
-.tab.active { color: var(--navy); border-bottom-color: var(--sky); }
-.tab.active .tab-num { background: var(--sky); color: var(--white); }
-.tab:hover:not(.active) { color: var(--navy); }
-
-.tab-controls .btn-draw {
-  white-space: nowrap;
-}
-
-/* ===== Panels ===== */
-.panel { display: none; animation: fadeUp 0.35s ease; }
-.panel.active { display: block; }
-
-@keyframes fadeUp {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.panel-head {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 20px;
-  flex-wrap: wrap;
-  margin-bottom: 30px;
-}
-
-.panel-head h1 {
-  font-family: var(--font-display);
-  font-size: clamp(24px, 3.4vw, 30px);
-  font-weight: 700;
-  letter-spacing: -0.015em;
-  margin: 0 0 6px;
-}
-.panel-desc { font-size: 14px; color: var(--navy-soft); margin: 0; }
-
-.btn-draw {
-  position: relative;
-  background: linear-gradient(135deg, var(--sky), var(--sky-deep));
-  color: var(--white);
-  border: none;
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 14.5px;
-  padding: 15px 28px;
-  border-radius: 100px;
-  cursor: pointer;
-  box-shadow: 0 10px 24px rgba(46,159,224,0.32);
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
-  white-space: nowrap;
-}
-.btn-draw:hover { transform: translateY(-1px); box-shadow: 0 14px 28px rgba(46,159,224,0.4); }
-.btn-draw:active { transform: translateY(0) scale(0.98); }
-.btn-draw:disabled { opacity: 0.6; cursor: default; transform: none; }
-
-/* ===== Empty state ===== */
-.empty-state {
-  text-align: center;
-  padding: 70px 20px;
-  border: 1.5px dashed var(--line);
-  border-radius: var(--radius-lg);
-  color: var(--navy-soft);
-}
-.empty-icon {
-  font-size: 22px;
-  color: var(--sky);
-  margin-bottom: 10px;
-}
-.empty-state p { margin: 0; font-size: 14px; }
-.empty-state strong { color: var(--navy); }
-
-/* ===== Order list (urutan tampil) ===== */
-.order-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  grid-auto-flow: column;
-  grid-template-rows: repeat(8, auto);
-  grid-auto-columns: 1fr;
-  gap: 8px 14px;
-}
-
-.order-row {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  background: var(--white);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-md);
-  padding: 14px 18px;
-  opacity: 0;
-  transform: translateY(10px) scale(0.98);
-  animation: settleIn 0.42s cubic-bezier(.2,.7,.3,1) forwards;
-}
-
-@keyframes settleIn {
-  to { opacity: 1; transform: translateY(0) scale(1); }
-}
-
-.order-num {
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 15px;
-  color: var(--sky-deep);
-  background: var(--sky-pale);
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  font-variant-numeric: tabular-nums;
-}
-
-.order-class {
-  font-family: var(--font-display);
-  font-weight: 600;
-  font-size: 16.5px;
-  letter-spacing: -0.01em;
-}
-
-/* ===== Angkatan limit switch ===== */
-.switch-row {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  background: var(--white);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-md);
-  padding: 14px 18px;
-  margin-bottom: 22px;
-  cursor: pointer;
-  transition: border-color 0.15s ease;
-}
-.switch-row:hover { border-color: var(--sky); }
-
-.switch { flex-shrink: 0; display: flex; }
+.switch b { display: block; font-weight: 600; }
+.switch small { color: var(--muted); font-size: 13px; line-height: 1.35; display: block; margin-top: 2px; }
 .switch input {
-  position: absolute;
-  opacity: 0;
-  width: 0;
-  height: 0;
+  appearance: none; flex: none; width: 51px; height: 31px; margin: 0; border-radius: 99px;
+  background: var(--fill); position: relative; cursor: pointer; transition: background .3s var(--ease);
 }
-.switch-track {
-  width: 42px;
-  height: 24px;
-  background: var(--line);
-  border-radius: 100px;
-  position: relative;
-  transition: background 0.2s ease;
-  display: block;
+.switch input::after {
+  content: ""; position: absolute; top: 2px; left: 2px; width: 27px; height: 27px; border-radius: 50%;
+  background: #fff; box-shadow: 0 2px 5px rgba(0, 0, 0, .25); transition: transform .3s var(--ease);
 }
-.switch-thumb {
-  position: absolute;
-  top: 3px;
-  left: 3px;
-  width: 18px;
-  height: 18px;
-  background: var(--white);
-  border-radius: 50%;
-  box-shadow: 0 1px 3px rgba(15,42,61,0.25);
-  transition: transform 0.2s cubic-bezier(.4,0,.2,1);
-}
-.switch input:checked ~ .switch-track,
-.switch input:checked + .switch-track {
-  background: var(--sky);
-}
-.switch input:checked ~ .switch-track .switch-thumb,
-.switch input:checked + .switch-track .switch-thumb {
-  transform: translateX(18px);
-}
-.switch input:focus-visible ~ .switch-track {
-  outline: 2.5px solid var(--sky-deep);
-  outline-offset: 2px;
-}
+.switch input:checked { background: #34c759; }
+.switch input:checked::after { transform: translateX(20px); }
 
-.switch-text {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
+/* ============ Stage ============ */
+.stage-head { display: grid; gap: 16px; margin-bottom: 24px; }
+.stage-head .seg { max-width: 320px; }
+.title-row { display: flex; justify-content: space-between; align-items: end; gap: 16px; flex-wrap: wrap; }
+h1 { margin: 0; font-size: clamp(30px, 5vw, 40px); line-height: 1.05; letter-spacing: -.03em; font-weight: 700; }
+.desc { margin: 6px 0 0; color: var(--muted); }
+.primary {
+  padding: 13px 28px; border-radius: 99px; background: var(--accent); color: #fff;
+  font-weight: 600; font-size: 16px; box-shadow: 0 6px 18px color-mix(in srgb, var(--accent) 35%, transparent);
 }
-.switch-text strong {
-  font-family: var(--font-display);
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--navy);
-}
-.switch-text span {
-  font-size: 12.5px;
-  color: var(--navy-soft);
-  line-height: 1.4;
-}
+.primary:disabled { opacity: .35; box-shadow: none; cursor: default; }
 
-/* ===== Angkatan group headings (pairing, grouped mode) ===== */
-.angkatan-group { margin-bottom: 28px; }
-.angkatan-group:last-child { margin-bottom: 0; }
-.angkatan-heading {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 12px;
-}
-.angkatan-heading h3 {
-  font-family: var(--font-display);
-  font-size: 14.5px;
-  font-weight: 700;
-  color: var(--sky-deep);
-  margin: 0;
-  white-space: nowrap;
-}
-.angkatan-heading::after {
-  content: "";
-  flex: 1;
-  height: 1px;
-  background: var(--line);
-}
+/* ============ Results ============ */
+.empty { padding: 72px 20px; text-align: center; color: var(--muted); border-radius: var(--radius); background: var(--card); box-shadow: var(--shadow); }
+.empty big { display: block; font-size: 34px; margin-bottom: 8px; }
 
-.angkatan-stack { display: block; }
+.list, .pairs { display: grid; gap: 10px; }
+.list  { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
+.pairs { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+.group + .group { margin-top: 28px; }
+.group h3 { margin: 0 0 10px; font-size: 13px; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
 
-/* ===== Pairing grid ===== */
-.pair-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 14px;
+.item {
+  display: flex; align-items: center; gap: 14px; padding: 14px 16px;
+  background: var(--card); border-radius: 14px; box-shadow: var(--shadow); font-weight: 600; font-size: 17px; letter-spacing: -.01em;
 }
-
-.pair-card {
-  background: var(--white);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-lg);
-  padding: 20px 22px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  opacity: 0;
-  transform: translateY(10px) scale(0.97);
-  animation: settleIn 0.45s cubic-bezier(.2,.7,.3,1) forwards;
-  position: relative;
-  overflow: hidden;
+.num {
+  flex: none; min-width: 34px; height: 34px; padding: 0 6px; display: grid; place-items: center;
+  border-radius: 10px; background: color-mix(in srgb, var(--accent) 12%, transparent); color: var(--accent);
+  font-size: 14px; font-variant-numeric: tabular-nums;
 }
-.pair-card::before {
-  content: "";
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 3px;
-  background: linear-gradient(90deg, var(--sky), var(--coral));
-}
+.pair { justify-content: space-between; padding: 18px 20px; }
+.pair span:not(.vs) { flex: 1; text-align: center; font-size: 18px; }
+.vs { font-size: 11px; font-weight: 700; letter-spacing: .06em; color: var(--muted); background: var(--fill); padding: 4px 9px; border-radius: 99px; }
+.bye { justify-content: center; color: var(--muted); font-weight: 500; font-size: 14px; }
 
-.pair-card.bye { background: var(--sky-mist); }
+.enter > * { animation: in .55s var(--ease) both; animation-delay: calc(min(var(--i), 24) * 45ms); }
+@keyframes in { from { opacity: 0; transform: translateY(12px) scale(.98); } }
 
-.pair-side {
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 17px;
-  color: var(--navy);
-  text-align: center;
-  flex: 1;
-  letter-spacing: -0.01em;
-}
-
-.pair-vs {
-  font-family: var(--font-body);
-  font-weight: 800;
-  font-size: 11.5px;
-  color: var(--coral-deep);
-  background: rgba(255,107,92,0.1);
-  padding: 5px 10px;
-  border-radius: 100px;
-  flex-shrink: 0;
-  letter-spacing: 0.03em;
-}
-
-.pair-bye-label {
-  font-size: 13px;
-  color: var(--navy-soft);
-  font-weight: 600;
-  width: 100%;
-  text-align: center;
-}
-
-/* ===== Footer ===== */
-.foot {
-  text-align: center;
-  padding: 30px 20px 50px;
-  font-size: 12px;
-  color: var(--navy-soft);
-  opacity: 0.75;
-}
-
-/* ===== Responsive ===== */
-@media (max-width: 560px) {
-  .panel-head { flex-direction: column; align-items: stretch; }
-  .btn-draw { width: 100%; text-align: center; }
-  .tabs { gap: 0; }
-  .tab { margin-right: 14px; font-size: 13.5px; }
-  .pair-grid { grid-template-columns: 1fr; }
-}
-
-/* ===== Desktop: sidebar layout ===== */
-@media (min-width: 1024px) {
-  body {
-    height: 100vh;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
+/* ============ Mobile: panel becomes a bottom sheet ============ */
+@media (max-width: 899px) {
+  .only-mobile { display: block; }
+  .layout { grid-template-columns: 1fr; padding-top: 20px; }
+  .panel {
+    position: fixed; inset: auto 0 0 0; top: auto; z-index: 40; max-height: 88dvh; overflow: auto;
+    border-radius: 26px 26px 0 0; padding-bottom: max(20px, env(safe-area-inset-bottom));
+    transform: translateY(104%); visibility: hidden;
+    transition: transform .5s var(--ease), visibility 0s .5s;
   }
-
-  .topbar {
-    flex-shrink: 0;
-  }
-
-  .foot {
-    flex-shrink: 0;
-    padding: 8px 20px 10px;
-  }
-
-  .stage {
-    max-width: none;
-    width: 100%;
-    flex: 1;
-    min-height: 0;
-    display: flex;
-    flex-direction: column;
-    padding-left: clamp(18px, 3vw, 40px);
-    padding-right: clamp(18px, 3vw, 40px);
-    padding-bottom: 12px;
-    box-sizing: border-box;
-  }
-
-  .stage-layout {
-    display: flex;
-    align-items: stretch;
-    gap: 24px;
-    flex: 1;
-    min-height: 0;
-  }
-
-  /* Sidebar: collapses to zero width instead of zero height on desktop */
-  .setup-panel {
-    max-height: none;
-    overflow: hidden;
-    flex-basis: 0;
-    flex-grow: 0;
-    flex-shrink: 0;
-    opacity: 0;
-    margin-top: 0;
-    transition: flex-basis 0.32s cubic-bezier(.4,0,.2,1), opacity 0.25s ease;
-  }
-  .setup-panel.open {
-    max-height: none;
-    flex-basis: 33.333%;
-    opacity: 1;
-    margin-top: 0;
-  }
-
-  .setup-inner {
-    width: 100%;
-    height: 100%;
-    overflow-y: auto;
-    overflow-x: hidden;
-    box-sizing: border-box;
-  }
-
-  .content-column {
-    flex: 1;
-    min-width: 0;
-    height: 100%;
-    overflow-y: auto;
-    overflow-x: hidden;
-    padding-right: 4px;
-    box-sizing: border-box;
-  }
+  .scrim { display: block; position: fixed; inset: 0; z-index: 30; background: rgba(0, 0, 0, .4); opacity: 0; pointer-events: none; transition: opacity .4s; }
+  body.sheet .panel { transform: none; visibility: visible; transition-delay: 0s; }
+  body.sheet .scrim { opacity: 1; pointer-events: auto; }
+  .stage-head .seg { max-width: none; }
+  .primary { width: 100%; }
 }
 
-/* Focus visibility */
-button:focus-visible, textarea:focus-visible {
-  outline: 2.5px solid var(--sky-deep);
-  outline-offset: 2px;
+/* ============ Accessibility preferences ============ */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .001ms !important; transition-duration: .001ms !important; }
 }
-
+@media (prefers-reduced-transparency: reduce) {
+  .bar { background: var(--bg); -webkit-backdrop-filter: none; backdrop-filter: none; }
+}
 </style>
 </head>
 <body>
 
-<div class="bg-field" aria-hidden="true"></div>
-
-<header class="topbar">
-  <div class="brand">
-    <span class="brand-mark"></span>
-    <div class="brand-text">
-      <span class="brand-title">Pengundian Lomba</span>
-      <span class="brand-sub">Urutan tampil &amp; pairing kelas</span>
-    </div>
-  </div>
-  <button class="btn-ghost" id="toggleSetup" aria-expanded="false" aria-controls="setupPanel">
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 1v3M8 12v3M3.5 3.5l2 2M10.5 10.5l2 2M1 8h3M12 8h3M3.5 12.5l2-2M10.5 5.5l2-2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
-    Daftar Kelas
-  </button>
+<header class="bar">
+  <span class="brand">Pengundian Lomba</span>
+  <button class="link only-mobile press" id="openSheet">Peserta</button>
 </header>
 
-<main class="stage">
+<div class="layout">
+  <aside class="panel" id="panel" aria-label="Daftar peserta">
+    <h2>Peserta <button class="link only-mobile press" id="closeSheet">Selesai</button></h2>
 
-  <div class="stage-layout">
-
-    <section class="setup-panel" id="setupPanel" hidden>
-    <div class="setup-inner">
-
-      <div class="tab-title active" data-tab-title="urutan">
-        <h1>Urutan Tampil Lomba</h1>
-        <p class="panel-desc">Undi urutan penampilan setiap kelas secara acak.</p>
-      </div>
-      <div class="tab-title" data-tab-title="pairing" hidden>
-        <h1>Pairing Kelas</h1>
-        <p class="panel-desc">Undi lawan tanding secara acak, dua kelas per babak.</p>
-      </div>
-
-      <div class="tabs-row">
-        <nav class="tabs" role="tablist">
-          <button class="tab active" data-tab="urutan" role="tab" aria-selected="true">
-            <span class="tab-num">01</span>
-            Urutan Tampil
-          </button>
-          <button class="tab" data-tab="pairing" role="tab" aria-selected="false">
-            <span class="tab-num">02</span>
-            Pairing Kelas
-          </button>
-        </nav>
-
-        <div class="tab-controls active" data-tab-controls="urutan">
-          <button class="btn-draw" id="drawUrutan">
-            <span>Undi Sekarang</span>
-          </button>
-        </div>
-
-        <div class="tab-controls" data-tab-controls="pairing" hidden>
-          <button class="btn-draw" id="drawPairing">
-            <span>Undi Sekarang</span>
-          </button>
-        </div>
-      </div>
-
-      <div class="panel-divider"></div>
-
-      <div class="setup-head">
-        <h2>Daftar Peserta</h2>
-        <p>Pilih sumber peserta. Tersimpan otomatis di perangkat ini.</p>
-      </div>
-
-      <div class="mode-switch" role="tablist">
-        <button class="mode-btn active" id="modeKelasBtn" data-mode="kelas" role="tab" aria-selected="true">Kelas</button>
-        <button class="mode-btn" id="modeManualBtn" data-mode="manual" role="tab" aria-selected="false">Peserta Manual</button>
-      </div>
-
-      <!-- MODE: KELAS -->
-      <div class="mode-body" id="modeKelasBody">
-        <p class="mode-desc">Tentukan rentang huruf kelas tiap angkatan.</p>
-        <div class="angkatan-ranges">
-          <div class="angkatan-range-row" data-angkatan="X">
-            <label class="angkatan-input-label">Angkatan X</label>
-            <div class="range-fields">
-              <input type="text" id="angkatanX-start" class="letter-box" maxlength="1" inputmode="text" autocomplete="off" autocorrect="off" placeholder="A">
-              <span class="range-dash">–</span>
-              <input type="text" id="angkatanX-end" class="letter-box" maxlength="1" inputmode="text" autocomplete="off" autocorrect="off" placeholder="Z">
-            </div>
-          </div>
-          <p class="range-warning" id="angkatanX-warning" hidden></p>
-
-          <div class="angkatan-range-row" data-angkatan="XI">
-            <label class="angkatan-input-label">Angkatan XI</label>
-            <div class="range-fields">
-              <input type="text" id="angkatanXI-start" class="letter-box" maxlength="1" inputmode="text" autocomplete="off" autocorrect="off" placeholder="A">
-              <span class="range-dash">–</span>
-              <input type="text" id="angkatanXI-end" class="letter-box" maxlength="1" inputmode="text" autocomplete="off" autocorrect="off" placeholder="Z">
-            </div>
-          </div>
-          <p class="range-warning" id="angkatanXI-warning" hidden></p>
-
-          <div class="angkatan-range-row" data-angkatan="XII">
-            <label class="angkatan-input-label">Angkatan XII</label>
-            <div class="range-fields">
-              <input type="text" id="angkatanXII-start" class="letter-box" maxlength="1" inputmode="text" autocomplete="off" autocorrect="off" placeholder="A">
-              <span class="range-dash">–</span>
-              <input type="text" id="angkatanXII-end" class="letter-box" maxlength="1" inputmode="text" autocomplete="off" autocorrect="off" placeholder="Z">
-            </div>
-          </div>
-          <p class="range-warning" id="angkatanXII-warning" hidden></p>
-        </div>
-      </div>
-
-      <!-- MODE: MANUAL -->
-      <div class="mode-body" id="modeManualBody" hidden>
-        <p class="mode-desc">Satu peserta per baris.</p>
-        <textarea id="manualInput" class="manual-textarea" spellcheck="false" placeholder="Peserta 1&#10;Peserta 2&#10;Peserta 3&#10;..."></textarea>
-      </div>
-
-      <div class="setup-foot">
-        <span class="count-pill" id="classCount">0 peserta</span>
-        <div class="setup-actions">
-          <button class="btn-text" id="resetDefault">Pakai daftar contoh</button>
-          <button class="btn-primary" id="saveClasses">Simpan</button>
-        </div>
-      </div>
-
-      <div class="switch-row-wrap" data-tab-controls-extra="pairing">
-        <div class="panel-divider"></div>
-        <label class="switch-row" for="limitAngkatan" id="limitAngkatanRow">
-          <span class="switch">
-            <input type="checkbox" id="limitAngkatan">
-            <span class="switch-track"><span class="switch-thumb"></span></span>
-          </span>
-          <span class="switch-text">
-            <strong>Batasi lawan per angkatan</strong>
-            <span>Kelas hanya diundi melawan kelas dari angkatan yang sama (contoh: X.A hanya bisa lawan kelas X lainnya). Hanya berlaku untuk mode Kelas.</span>
-          </span>
-        </label>
-      </div>
-    </div>
-    </section>
-
-    <div class="content-column">
-
-  <!-- URUTAN TAMPIL -->
-  <section class="panel active" id="panel-urutan" role="tabpanel">
-    <div class="empty-state" id="urutanEmpty">
-      <div class="empty-icon">✦</div>
-      <p>Belum ada undian. Tekan <strong>Undi Sekarang</strong> untuk memulai.</p>
+    <div class="seg" id="modeSeg" role="tablist">
+      <button role="tab" data-mode="kelas">Kelas</button>
+      <button role="tab" data-mode="manual">Manual</button>
     </div>
 
-    <ol class="order-list" id="urutanResult"></ol>
-  </section>
-
-  <!-- PAIRING -->
-  <section class="panel" id="panel-pairing" role="tabpanel" hidden>
-    <div class="empty-state" id="pairingEmpty">
-      <div class="empty-icon">✦</div>
-      <p>Belum ada undian. Tekan <strong>Undi Sekarang</strong> untuk memulai.</p>
+    <div id="kelasBody">
+      <div class="rows" id="ranges"></div>
+      <p class="hint" id="hint">Rentang huruf kelas tiap angkatan.</p>
+    </div>
+    <div id="manualBody" hidden>
+      <textarea id="manual" spellcheck="false" placeholder="Satu peserta per baris"></textarea>
     </div>
 
-    <div class="pair-grid" id="pairingResult"></div>
-  </section>
-
+    <div class="foot">
+      <span class="count" id="count"></span>
+      <button class="link press" id="reset">Pakai contoh</button>
     </div>
 
-  </div>
+    <label class="switch" id="limitRow" hidden>
+      <input type="checkbox" id="limit">
+      <span><b>Batasi per angkatan</b><small>Kelas hanya melawan kelas dari angkatan yang sama.</small></span>
+    </label>
+  </aside>
 
-</main>
-
-<footer class="foot">
-  <span>Undian kelas & peserta — jalankan langsung dari browser, tanpa server.</span>
-</footer>
+  <main>
+    <div class="stage-head">
+      <div class="seg" id="tabSeg" role="tablist">
+        <button role="tab" data-tab="urutan">Urutan Tampil</button>
+        <button role="tab" data-tab="pairing">Pairing</button>
+      </div>
+      <div class="title-row">
+        <div>
+          <h1 id="title"></h1>
+          <p class="desc" id="desc"></p>
+        </div>
+        <button class="primary press" id="draw">Undi Sekarang</button>
+      </div>
+    </div>
+    <div id="result"></div>
+  </main>
+</div>
+<div class="scrim" id="scrim"></div>
 
 <script>
-// ===== Defaults =====
-const DEFAULT_RANGES = {
-  X: { start: "A", end: "F" },
-  XI: { start: "A", end: "F" },
-  XII: { start: "A", end: "G" },
+/* ============ Config ============ */
+const KEYS = ["X", "XI", "XII"];
+const STORE = "pengundian_lomba_v4";
+const DEFAULTS = {
+  mode: "kelas",
+  ranges: { X: ["A", "F"], XI: ["A", "F"], XII: ["A", "G"] },
+  manual: "Peserta 1\nPeserta 2\nPeserta 3\nPeserta 4",
+  limit: false,
 };
-const DEFAULT_MANUAL = ["Peserta 1", "Peserta 2", "Peserta 3", "Peserta 4"];
-
-const ANGKATAN_KEYS = ["X", "XI", "XII"];
-const STORAGE_KEY = "pengundian_lomba_v3";
-
-// ===== Elements =====
-const rangeInputs = {
-  X: {
-    start: document.getElementById("angkatanX-start"),
-    end: document.getElementById("angkatanX-end"),
-    warning: document.getElementById("angkatanX-warning"),
-  },
-  XI: {
-    start: document.getElementById("angkatanXI-start"),
-    end: document.getElementById("angkatanXI-end"),
-    warning: document.getElementById("angkatanXI-warning"),
-  },
-  XII: {
-    start: document.getElementById("angkatanXII-start"),
-    end: document.getElementById("angkatanXII-end"),
-    warning: document.getElementById("angkatanXII-warning"),
-  },
+const TABS = {
+  urutan:  { title: "Urutan Tampil", desc: "Undi urutan penampilan setiap peserta." },
+  pairing: { title: "Pairing",       desc: "Undi lawan tanding, dua peserta per babak." },
 };
 
-const manualInput = document.getElementById("manualInput");
-const modeKelasBtn = document.getElementById("modeKelasBtn");
-const modeManualBtn = document.getElementById("modeManualBtn");
-const modeKelasBody = document.getElementById("modeKelasBody");
-const modeManualBody = document.getElementById("modeManualBody");
+/* ============ State ============ */
+const $ = (s) => document.querySelector(s);
+const state = load();
+const results = { urutan: null, pairing: null };
+let tab = "urutan";
 
-const classCount = document.getElementById("classCount");
-const setupPanel = document.getElementById("setupPanel");
-const toggleSetupBtn = document.getElementById("toggleSetup");
-const saveClassesBtn = document.getElementById("saveClasses");
-const resetDefaultBtn = document.getElementById("resetDefault");
-
-const tabs = document.querySelectorAll(".tab");
-const panels = {
-  urutan: document.getElementById("panel-urutan"),
-  pairing: document.getElementById("panel-pairing"),
-};
-const tabControls = {
-  urutan: document.querySelector('[data-tab-controls="urutan"]'),
-  pairing: document.querySelector('[data-tab-controls="pairing"]'),
-};
-const tabTitles = {
-  urutan: document.querySelector('[data-tab-title="urutan"]'),
-  pairing: document.querySelector('[data-tab-title="pairing"]'),
-};
-
-const drawUrutanBtn = document.getElementById("drawUrutan");
-const urutanResult = document.getElementById("urutanResult");
-const urutanEmpty = document.getElementById("urutanEmpty");
-
-const drawPairingBtn = document.getElementById("drawPairing");
-const pairingResult = document.getElementById("pairingResult");
-const pairingEmpty = document.getElementById("pairingEmpty");
-
-let currentMode = "kelas"; // "kelas" | "manual"
-let currentTab = "urutan"; // "urutan" | "pairing"
-
-// The "batasi lawan per angkatan" row only makes sense when on the Pairing tab AND in Kelas mode.
-function updateLimitAngkatanVisibility() {
-  const limitRow = document.getElementById("limitAngkatanRow");
-  const wrap = document.querySelector(".switch-row-wrap");
-  const shouldShow = currentTab === "pairing" && currentMode === "kelas";
-  if (wrap) wrap.hidden = !shouldShow;
-  if (!shouldShow) document.getElementById("limitAngkatan").checked = false;
+function load() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(STORE));
+    if (saved && typeof saved === "object") return { ...structuredClone(DEFAULTS), ...saved };
+  } catch {}
+  return structuredClone(DEFAULTS);
+}
+function save() {
+  try { localStorage.setItem(STORE, JSON.stringify(state)); } catch {} // private mode: just don't persist
 }
 
-// ===== Mode switching =====
-function setMode(mode) {
-  currentMode = mode;
-  const isKelas = mode === "kelas";
-  modeKelasBtn.classList.toggle("active", isKelas);
-  modeKelasBtn.setAttribute("aria-selected", String(isKelas));
-  modeManualBtn.classList.toggle("active", !isKelas);
-  modeManualBtn.setAttribute("aria-selected", String(!isKelas));
-  modeKelasBody.hidden = !isKelas;
-  modeManualBody.hidden = isKelas;
+/* ============ Domain (pure, no DOM) ============ */
+const isLetter = (s) => /^[A-Z]$/.test(s);
 
-  updateLimitAngkatanVisibility();
-
-  updateCount();
+// ["A","C"] -> ["A","B","C"]; reversed or invalid input is handled, never throws
+function span([a, b]) {
+  if (!isLetter(a) || !isLetter(b)) return [];
+  const [from, to] = [a, b].map((c) => c.charCodeAt(0)).sort((x, y) => x - y);
+  return Array.from({ length: to - from + 1 }, (_, i) => String.fromCharCode(from + i));
 }
 
-modeKelasBtn.addEventListener("click", () => setMode("kelas"));
-modeManualBtn.addEventListener("click", () => setMode("manual"));
-
-// ===== Letter range helpers =====
-function letterToIndex(letter) {
-  const code = letter.toUpperCase().charCodeAt(0);
-  if (code < 65 || code > 90) return null; // not A-Z
-  return code - 65;
-}
-
-function indexToLetter(index) {
-  return String.fromCharCode(65 + index);
-}
-
-function isValidLetter(str) {
-  return /^[A-Za-z]$/.test(str);
-}
-
-// Wire up live hint behavior + uppercase forcing for every letter box
-ANGKATAN_KEYS.forEach(key => {
-  [rangeInputs[key].start, rangeInputs[key].end].forEach(input => {
-    input.addEventListener("focus", () => {
-      liveValidate(key);
-    });
-    input.addEventListener("input", () => {
-      input.value = input.value.toUpperCase().slice(0, 1);
-      liveValidate(key);
-      updateCount();
-    });
-    input.addEventListener("blur", () => {
-      // Delay slightly so moving focus between start/end in the same row
-      // doesn't flicker the hint off and back on.
-      setTimeout(() => {
-        const rowFocused = rangeInputs[key].start.matches(":focus") || rangeInputs[key].end.matches(":focus");
-        if (!rowFocused) hideHint(key);
-      }, 0);
-    });
-  });
-});
-
-const HINT_TEXT = "Masukkan huruf — contoh: A, B, C, D";
-
-function showHint(key) {
-  const w = rangeInputs[key].warning;
-  w.textContent = HINT_TEXT;
-  w.classList.remove("is-error");
-  w.hidden = false;
-}
-
-function showError(key, message) {
-  const w = rangeInputs[key].warning;
-  w.textContent = "*" + message;
-  w.classList.add("is-error");
-  w.hidden = false;
-}
-
-function showSwapNotice(key, message) {
-  const w = rangeInputs[key].warning;
-  w.textContent = message;
-  w.classList.remove("is-error");
-  w.hidden = false;
-}
-
-function hideHint(key) {
-  rangeInputs[key].warning.hidden = true;
-}
-
-// Live-validate one angkatan row's current box values, updating the hint without needing a draw.
-// Does NOT auto-swap (that only happens at draw time in resolveRange) — just checks validity.
-function liveValidate(key) {
-  const { start, end } = rangeInputs[key];
-  const startVal = start.value.trim();
-  const endVal = end.value.trim();
-
-  const startBad = startVal !== "" && !isValidLetter(startVal);
-  const endBad = endVal !== "" && !isValidLetter(endVal);
-
-  start.classList.toggle("invalid", startBad);
-  end.classList.toggle("invalid", endBad);
-
-  if (startBad || endBad) {
-    showError(key, HINT_TEXT);
-  } else {
-    showHint(key);
+// Participants as groups: [{ label, items }]
+function groups() {
+  if (state.mode === "manual") {
+    const items = state.manual.split("\n").map((s) => s.trim()).filter(Boolean);
+    return items.length ? [{ label: "", items }] : [];
   }
+  return KEYS
+    .map((k) => ({ label: `Angkatan ${k}`, items: span(state.ranges[k]).map((c) => `${k}.${c}`) }))
+    .filter((g) => g.items.length);
 }
 
-function flagInvalid(input) {
-  input.classList.remove("invalid");
-  // restart animation
-  void input.offsetWidth;
-  input.classList.add("invalid");
-}
-
-// Validate + resolve a single angkatan's range. Returns array of section letters, or [] if invalid/empty.
-function resolveRange(key) {
-  const { start, end } = rangeInputs[key];
-  const startVal = start.value.trim();
-  const endVal = end.value.trim();
-
-  if (!startVal && !endVal) return [];
-
-  if (!isValidLetter(startVal) || !isValidLetter(endVal)) {
-    showError(key, HINT_TEXT);
-    if (!isValidLetter(startVal)) flagInvalid(start);
-    if (!isValidLetter(endVal)) flagInvalid(end);
-    return [];
-  }
-
-  let startIdx = letterToIndex(startVal);
-  let endIdx = letterToIndex(endVal);
-
-  if (startIdx > endIdx) {
-    // auto-swap
-    [startIdx, endIdx] = [endIdx, startIdx];
-    start.value = indexToLetter(startIdx);
-    end.value = indexToLetter(endIdx);
-    showSwapNotice(key, `Urutan dibalik otomatis: ${indexToLetter(startIdx)} – ${indexToLetter(endIdx)}`);
-  }
-
-  const letters = [];
-  for (let i = startIdx; i <= endIdx; i++) letters.push(indexToLetter(i));
-  return letters;
-}
-
-// Build full class names for one angkatan, e.g. "X" + ["A","B"] -> ["X.A", "X.B"]
-function buildClassNames(angkatan, sections) {
-  return sections.map(sec => `${angkatan}.${sec}`);
-}
-
-// ===== Manual participant parsing =====
-function parseManual() {
-  return manualInput.value
-    .split("\n")
-    .map(s => s.trim())
-    .filter(Boolean);
-}
-
-// ===== Unified accessor: returns the flat list of participants for whichever mode is active =====
-function getClasses() {
-  if (currentMode === "manual") {
-    return parseManual();
-  }
-  const all = [];
-  ANGKATAN_KEYS.forEach(key => {
-    const sections = resolveRange(key);
-    all.push(...buildClassNames(key, sections));
-  });
-  return all;
-}
-
-// Returns classes grouped by angkatan (Mode Kelas only — used for "batasi lawan per angkatan")
-function getClassesByAngkatan() {
-  const grouped = {};
-  ANGKATAN_KEYS.forEach(key => {
-    const sections = resolveRange(key);
-    grouped[key] = buildClassNames(key, sections);
-  });
-  return grouped;
-}
-
-function updateCount() {
-  const n = getClasses().length;
-  classCount.textContent = `${n} peserta`;
-}
-
-// ===== Persistence =====
-function loadSaved() {
-  const raw = localStorage.getItem(STORAGE_KEY);
-  if (raw) {
-    try {
-      const parsed = JSON.parse(raw);
-      if (parsed && typeof parsed === "object") return parsed;
-    } catch (e) { /* fall through */ }
-  }
-  return null;
-}
-
-function applyRanges(ranges) {
-  ANGKATAN_KEYS.forEach(key => {
-    const r = ranges[key] || DEFAULT_RANGES[key];
-    rangeInputs[key].start.value = r.start;
-    rangeInputs[key].end.value = r.end;
-    hideHint(key);
-  });
-}
-
-function initClassInput() {
-  const saved = loadSaved();
-  if (saved) {
-    currentMode = saved.mode === "manual" ? "manual" : "kelas";
-    applyRanges(saved.ranges || DEFAULT_RANGES);
-    manualInput.value = Array.isArray(saved.manual) ? saved.manual.join("\n") : DEFAULT_MANUAL.join("\n");
-  } else {
-    applyRanges(DEFAULT_RANGES);
-    manualInput.value = DEFAULT_MANUAL.join("\n");
-  }
-  setMode(currentMode);
-}
-
-saveClassesBtn.addEventListener("click", () => {
-  const ranges = {};
-  ANGKATAN_KEYS.forEach(key => {
-    ranges[key] = { start: rangeInputs[key].start.value, end: rangeInputs[key].end.value };
-  });
-  const data = {
-    mode: currentMode,
-    ranges,
-    manual: parseManual(),
-  };
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-  updateCount();
-  saveClassesBtn.textContent = "Tersimpan ✓";
-  setTimeout(() => { saveClassesBtn.textContent = "Simpan"; }, 1400);
-});
-
-resetDefaultBtn.addEventListener("click", () => {
-  if (currentMode === "kelas") {
-    applyRanges(DEFAULT_RANGES);
-  } else {
-    manualInput.value = DEFAULT_MANUAL.join("\n");
-  }
-  updateCount();
-});
-
-manualInput.addEventListener("input", updateCount);
-
-// ===== Setup panel toggle =====
-toggleSetupBtn.addEventListener("click", () => {
-  const isOpen = setupPanel.classList.toggle("open");
-  setupPanel.hidden = false;
-  toggleSetupBtn.setAttribute("aria-expanded", String(isOpen));
-  if (!isOpen) {
-    setTimeout(() => { setupPanel.hidden = true; }, 380);
-  }
-});
-
-// ===== Tabs =====
-tabs.forEach(tab => {
-  tab.addEventListener("click", () => {
-    tabs.forEach(t => { t.classList.remove("active"); t.setAttribute("aria-selected", "false"); });
-    tab.classList.add("active");
-    tab.setAttribute("aria-selected", "true");
-
-    Object.values(panels).forEach(p => { p.classList.remove("active"); p.hidden = true; });
-    const target = panels[tab.dataset.tab];
-    target.hidden = false;
-    target.classList.add("active");
-
-    Object.values(tabControls).forEach(c => { c.classList.remove("active"); c.hidden = true; });
-    const targetControls = tabControls[tab.dataset.tab];
-    targetControls.hidden = false;
-    targetControls.classList.add("active");
-
-    Object.values(tabTitles).forEach(t => { t.classList.remove("active"); t.hidden = true; });
-    const targetTitle = tabTitles[tab.dataset.tab];
-    targetTitle.hidden = false;
-    targetTitle.classList.add("active");
-
-    currentTab = tab.dataset.tab;
-    updateLimitAngkatanVisibility();
-  });
-});
-
-// ===== Fisher-Yates shuffle =====
-function shuffle(arr) {
-  const a = arr.slice();
+function shuffle(arr) { // Fisher-Yates
+  const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [a[i], a[j]] = [a[j], a[i]];
@@ -1310,153 +311,159 @@ function shuffle(arr) {
   return a;
 }
 
-// ===== Urutan Tampil =====
-function drawUrutan() {
-  const classes = getClasses();
-  if (classes.length === 0) return;
-
-  drawUrutanBtn.disabled = true;
-  urutanEmpty.style.display = "none";
-  urutanResult.innerHTML = "";
-
-  const order = shuffle(classes);
-
-  order.forEach((cls, i) => {
-    const li = document.createElement("li");
-    li.className = "order-row";
-    li.style.animationDelay = `${i * 55}ms`;
-    li.innerHTML = `
-      <span class="order-num">${String(i + 1).padStart(2, "0")}</span>
-      <span class="order-class">${escapeHtml(cls)}</span>
-    `;
-    urutanResult.appendChild(li);
-  });
-
-  const totalDelay = order.length * 55 + 450;
-  setTimeout(() => { drawUrutanBtn.disabled = false; }, totalDelay);
-}
-
-drawUrutanBtn.addEventListener("click", drawUrutan);
-
-// ===== Pairing =====
-
-function buildPairCard(a, b, delayMs) {
-  const card = document.createElement("div");
-  card.className = "pair-card";
-  card.style.animationDelay = `${delayMs}ms`;
-  card.innerHTML = `
-    <span class="pair-side">${escapeHtml(a)}</span>
-    <span class="pair-vs">VS</span>
-    <span class="pair-side">${escapeHtml(b)}</span>
-  `;
-  return card;
-}
-
-function buildByeCard(cls, delayMs) {
-  const card = document.createElement("div");
-  card.className = "pair-card bye";
-  card.style.animationDelay = `${delayMs}ms`;
-  card.innerHTML = `<span class="pair-bye-label">${escapeHtml(cls)} — tidak mendapat lawan (bye)</span>`;
-  return card;
-}
-
-// Pair up a list of classes, returns { pairs: [[a,b], ...], bye: classOrNull }
-function makePairs(list) {
-  const shuffled = shuffle(list);
+function pairUp(items) {
+  const s = shuffle(items);
   const pairs = [];
-  for (let i = 0; i < shuffled.length - 1; i += 2) {
-    pairs.push([shuffled[i], shuffled[i + 1]]);
+  for (let i = 0; i + 1 < s.length; i += 2) pairs.push([s[i], s[i + 1]]);
+  return { pairs, bye: s.length % 2 ? s[s.length - 1] : null };
+}
+
+const DRAW = {
+  urutan: () => shuffle(groups().flatMap((g) => g.items)),
+  pairing: () => {
+    const all = groups();
+    const split = state.limit && state.mode === "kelas";
+    const sets = split ? all : [{ label: "", items: all.flatMap((g) => g.items) }];
+    return sets.map((g) => ({ label: g.label, ...pairUp(g.items) }));
+  },
+};
+
+/* ============ Rendering ============ */
+const esc = (s) => Object.assign(document.createElement("i"), { textContent: s }).innerHTML;
+const slot = (i) => `style="--i:${i}"`;
+
+const VIEW = {
+  urutan: (order) =>
+    `<ol class="list" style="list-style:none;margin:0;padding:0">${order.map((c, i) =>
+      `<li class="item" ${slot(i)}><span class="num">${i + 1}</span>${esc(c)}</li>`).join("")}</ol>`,
+
+  pairing: (sets) => {
+    let n = 0;
+    return sets.map((g) => `
+      <section class="group">
+        ${g.label ? `<h3>${esc(g.label)}</h3>` : ""}
+        <div class="pairs">
+          ${g.pairs.map(([a, b]) => `<div class="item pair" ${slot(n++)}><span>${esc(a)}</span><span class="vs">VS</span><span>${esc(b)}</span></div>`).join("")}
+          ${g.bye ? `<div class="item bye" ${slot(n++)}>${esc(g.bye)} — tidak mendapat lawan (bye)</div>` : ""}
+        </div>
+      </section>`).join("");
+  },
+};
+
+function renderResult(animate) {
+  const out = $("#result");
+  const data = results[tab];
+  if (!data) {
+    const none = !groups().length;
+    out.className = "";
+    out.innerHTML = `<div class="empty"><big>✦</big>${none
+      ? "Belum ada peserta. Isi daftar peserta dulu."
+      : "Belum ada undian. Tekan <b>Undi Sekarang</b>."}</div>`;
+    return;
   }
-  const hasBye = shuffled.length % 2 === 1;
-  return { pairs, bye: hasBye ? shuffled[shuffled.length - 1] : null };
+  out.className = animate ? "enter" : "";
+  out.innerHTML = VIEW[tab](data);
 }
 
-function drawPairing() {
-  const classes = getClasses();
-  if (classes.length === 0) return;
+function renderRanges() {
+  $("#ranges").innerHTML = KEYS.map((k) => `
+    <div class="range">
+      <label>Angkatan ${k}</label>
+      <input class="letter" data-k="${k}" data-i="0" maxlength="1" autocomplete="off" aria-label="Dari huruf" placeholder="A" value="${state.ranges[k][0]}">
+      <i>–</i>
+      <input class="letter" data-k="${k}" data-i="1" maxlength="1" autocomplete="off" aria-label="Sampai huruf" placeholder="Z" value="${state.ranges[k][1]}">
+    </div>`).join("");
+}
 
-  drawPairingBtn.disabled = true;
-  pairingEmpty.style.display = "none";
-  pairingResult.innerHTML = "";
+// Cheap syncing of everything that depends on state; call after any change.
+function refresh() {
+  const kelas = state.mode === "kelas";
+  const total = groups().reduce((n, g) => n + g.items.length, 0);
 
-  const limitAngkatan = document.getElementById("limitAngkatan").checked;
-  let cardIndex = 0;
-  const STEP_MS = 90;
+  $("#modeSeg").style.setProperty("--i", kelas ? 0 : 1);
+  $("#tabSeg").style.setProperty("--i", tab === "urutan" ? 0 : 1);
+  document.querySelectorAll("[data-mode]").forEach((b) => b.setAttribute("aria-selected", b.dataset.mode === state.mode));
+  document.querySelectorAll("[data-tab]").forEach((b) => b.setAttribute("aria-selected", b.dataset.tab === tab));
 
-  if (!limitAngkatan) {
-    // Free-for-all: anyone can face anyone
-    pairingResult.classList.add("pair-grid");
-    pairingResult.classList.remove("angkatan-stack");
-    const { pairs, bye } = makePairs(classes);
-    pairs.forEach(([a, b]) => {
-      pairingResult.appendChild(buildPairCard(a, b, cardIndex * STEP_MS));
-      cardIndex++;
-    });
-    if (bye) {
-      pairingResult.appendChild(buildByeCard(bye, cardIndex * STEP_MS));
-      cardIndex++;
-    }
-  } else {
-    // Grouped: only pair within the same angkatan
-    pairingResult.classList.remove("pair-grid");
-    pairingResult.classList.add("angkatan-stack");
-    const grouped = getClassesByAngkatan();
+  $("#kelasBody").hidden = !kelas;
+  $("#manualBody").hidden = kelas;
+  $("#limitRow").hidden = !(kelas && tab === "pairing");
+  $("#limit").checked = state.limit;
+  $("#count").textContent = `${total} peserta`;
+  $("#draw").disabled = total === 0;
+  $("#title").textContent = TABS[tab].title;
+  $("#desc").textContent = TABS[tab].desc;
 
-    ANGKATAN_KEYS.forEach(key => {
-      const groupClasses = grouped[key];
-      if (groupClasses.length === 0) return;
+  // Range validation: both letters or neither
+  let bad = false;
+  document.querySelectorAll(".range").forEach((row) => {
+    const [a, b] = [...row.querySelectorAll(".letter")];
+    const half = !!a.value !== !!b.value;
+    a.classList.toggle("bad", half && !a.value);
+    b.classList.toggle("bad", half && !b.value);
+    bad ||= half;
+  });
+  const hint = $("#hint");
+  hint.classList.toggle("err", bad);
+  hint.textContent = bad ? "Isi kedua huruf, atau kosongkan keduanya." : "Rentang huruf kelas tiap angkatan. Kosongkan untuk melewati.";
+}
 
-      const groupWrap = document.createElement("div");
-      groupWrap.className = "angkatan-group";
+/* ============ Events ============ */
+$("#modeSeg").addEventListener("click", (e) => {
+  const m = e.target.closest("[data-mode]")?.dataset.mode;
+  if (!m) return;
+  state.mode = m; save(); refresh(); renderResult(false);
+});
 
-      const heading = document.createElement("div");
-      heading.className = "angkatan-heading";
-      heading.innerHTML = `<h3>Angkatan ${escapeHtml(key)}</h3>`;
-      groupWrap.appendChild(heading);
+$("#tabSeg").addEventListener("click", (e) => {
+  const t = e.target.closest("[data-tab]")?.dataset.tab;
+  if (!t) return;
+  tab = t; refresh(); renderResult(false);
+});
 
-      const cardsWrap = document.createElement("div");
-      cardsWrap.className = "pair-grid";
+$("#ranges").addEventListener("input", (e) => {
+  const el = e.target;
+  el.value = el.value.toUpperCase().replace(/[^A-Z]/g, "").slice(0, 1);
+  state.ranges[el.dataset.k][el.dataset.i] = el.value;
+  save(); refresh();
+  if (el.value && el.dataset.i === "0") el.nextElementSibling.nextElementSibling.focus(); // jump to the end box
+});
 
-      const { pairs, bye } = makePairs(groupClasses);
-      pairs.forEach(([a, b]) => {
-        cardsWrap.appendChild(buildPairCard(a, b, cardIndex * STEP_MS));
-        cardIndex++;
-      });
-      if (bye) {
-        cardsWrap.appendChild(buildByeCard(bye, cardIndex * STEP_MS));
-        cardIndex++;
-      }
-
-      groupWrap.appendChild(cardsWrap);
-      pairingResult.appendChild(groupWrap);
-    });
+$("#ranges").addEventListener("change", (e) => { // on blur: show reversed ranges the right way round
+  const k = e.target.dataset.k;
+  const [a, b] = state.ranges[k];
+  if (isLetter(a) && isLetter(b) && a > b) {
+    state.ranges[k] = [b, a];
+    renderRanges(); save(); refresh();
   }
+});
 
-  const totalDelay = cardIndex * STEP_MS + 460;
-  setTimeout(() => { drawPairingBtn.disabled = false; }, totalDelay);
-}
+$("#manual").addEventListener("input", (e) => { state.manual = e.target.value; save(); refresh(); });
+$("#limit").addEventListener("change", (e) => { state.limit = e.target.checked; save(); });
 
-drawPairingBtn.addEventListener("click", drawPairing);
+$("#reset").addEventListener("click", () => {
+  if (state.mode === "kelas") { state.ranges = structuredClone(DEFAULTS.ranges); renderRanges(); }
+  else { state.manual = DEFAULTS.manual; $("#manual").value = state.manual; }
+  save(); refresh();
+});
 
-// ===== Utility =====
-function escapeHtml(str) {
-  const div = document.createElement("div");
-  div.textContent = str;
-  return div.innerHTML;
-}
+$("#draw").addEventListener("click", () => {
+  results[tab] = DRAW[tab]();
+  renderResult(true);
+});
 
-// ===== Init =====
-initClassInput();
+// Mobile bottom sheet
+const sheet = (open) => document.body.classList.toggle("sheet", open);
+$("#openSheet").addEventListener("click", () => sheet(true));
+$("#closeSheet").addEventListener("click", () => sheet(false));
+$("#scrim").addEventListener("click", () => sheet(false));
+document.addEventListener("keydown", (e) => e.key === "Escape" && sheet(false));
 
-// On desktop, the sidebar is open by default (there's room for it).
-// On mobile, it stays collapsed until the user taps "Daftar Kelas".
-const DESKTOP_BREAKPOINT = 1024;
-if (window.innerWidth >= DESKTOP_BREAKPOINT) {
-  setupPanel.classList.add("open");
-  setupPanel.hidden = false;
-  toggleSetupBtn.setAttribute("aria-expanded", "true");
-}
-
+/* ============ Init ============ */
+renderRanges();
+$("#manual").value = state.manual;
+refresh();
+renderResult(false);
 </script>
 </body>
 </html>
